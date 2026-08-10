@@ -257,6 +257,10 @@ export function register(server: McpServer, sendCommand: SendCommandFn): void {
           name: query,
           types,
           parentId,
+          // Sideloaded plugins ≤0.7.7 read the scope as nodeId; npx serves the
+          // latest server automatically, so old-plugin/new-server is the common
+          // pairing. Drop once the 0.7.7 zip is no longer in circulation.
+          nodeId: parentId,
         }) as any[];
 
         const matches = (Array.isArray(result) ? result : []).map((n: any) => ({

@@ -35,7 +35,10 @@ registerHandler("get_css", async (params) => {
 });
 
 registerHandler("find_nodes", async (params) => {
-  const parentId = params.nodeId as string | undefined;
+  // The scope arrives as parentId (search_nodes' param name). Reading nodeId
+  // here was a copy-paste from get_node_tree: the scope never matched, and
+  // every "scoped" search silently ran against the current page instead.
+  const parentId = (params.parentId ?? params.nodeId) as string | undefined;
   let parent: BaseNode & ChildrenMixin;
   if (parentId) {
     const node = await getNodeById(parentId);
