@@ -32,7 +32,10 @@ function Contract() {
   const copy = getCopy().law.contract;
 
   return (
-    <figure className="w-full">
+    // Stacked (below lg) the seal's upper half rises ~69px above the card; the
+    // grid gap alone is 48px, so without the extra margin the seal stamps the
+    // inherit paragraph. Straddling the card edge is the design — prose is not.
+    <figure className="mt-12 w-full lg:mt-0">
       <div
         className="relative grid sm:grid-cols-2"
         style={{ boxShadow: '0 0 0 1px var(--border), 0 2px 6px rgba(26,22,19,0.07), 0 10px 22px -8px rgba(26,22,19,0.13)' }}
