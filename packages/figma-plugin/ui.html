@@ -20,6 +20,10 @@
       --ok-glow: rgba(88, 224, 122, 0.45);
       --err: #ff5f56;
       --err-glow: rgba(255, 95, 86, 0.4);
+      /* Vermilion is the file's own voice — law rejections (no-go, scope lock),
+         never machine failures (--err) and never live machinery (--amber). */
+      --shu: #e0563c;
+      --shu-dim: #8a3324;
 
       --mono: "SF Mono", "Menlo", "Cascadia Code", "Consolas", "Noto Sans Mono", monospace;
 
@@ -146,12 +150,14 @@
       padding: var(--sp-2) 0;
     }
     .leader-row .key { letter-spacing: 0.14em; text-transform: uppercase; font-size: 9px; }
-    .leader-row .dots { flex: 1; border-bottom: 1px dotted var(--line); margin: 0 var(--sp-4); height: 0.9em; }
+    .leader-row .dots { flex: 1; border-bottom: 0.5px dotted var(--line); margin: 0 var(--sp-4); height: 0.9em; }
     .leader-row .val { display: flex; align-items: center; gap: var(--sp-6); color: var(--text); }
     .leader-row .val.ok { color: var(--ok); }
     .leader-row .val.warn { color: var(--amber); }
     .leader-row .val.err { color: var(--err); }
     .leader-row .val.muted { color: var(--faint); }
+    /* A standing fence is the file's voice too — the count, not the row. */
+    #guardsCount.shu { color: var(--shu); }
     .conv-row { cursor: pointer; }
     .conv-row:hover .view-link { color: var(--amber); }
     .conv-row .view-link { text-decoration: underline dotted; text-underline-offset: 2px; }
@@ -169,7 +175,7 @@
     }
     .modal-head { display: flex; align-items: center; gap: var(--sp-8); margin-bottom: var(--sp-8); }
     .modal-head .key { letter-spacing: 0.14em; text-transform: uppercase; font-size: 9px; color: var(--muted); }
-    .modal-head .dots { flex: 1; border-bottom: 1px dotted var(--line); height: 0.9em; }
+    .modal-head .dots { flex: 1; border-bottom: 0.5px dotted var(--line); height: 0.9em; }
     .modal-close {
       background: none; border: 1px solid var(--line); color: var(--muted);
       font: inherit; font-size: 10px; line-height: 1; padding: 2px 6px; cursor: pointer;
@@ -214,7 +220,7 @@
     .chip-group + .chip-group { margin-left: auto; }
     .chip {
       display: inline-flex; align-items: center; gap: 4px;
-      border: 1px solid var(--line);
+      border: 0.5px solid var(--line);
       padding: 1px 6px;
       font-size: 9px; letter-spacing: 0.1em;
       color: var(--muted);
@@ -244,7 +250,7 @@
       gap: var(--sp-8);
       margin-top: var(--sp-20);
       padding-top: var(--sp-8);
-      border-top: 1px solid var(--line-soft);
+      border-top: 0.5px solid var(--line-soft);
     }
     .session-foot .link-btn { display: inline-block; width: auto; margin: 0; padding: var(--sp-4) 0; }
     .session-foot .room-line { margin-top: 0; }
@@ -525,7 +531,7 @@
     .feed-entry {
       display: flex; align-items: baseline; gap: var(--sp-8);
       padding: 3px var(--sp-8);
-      border-bottom: 1px solid var(--line-soft);
+      border-bottom: 0.5px solid var(--line-soft);
       font-size: 10px;
     }
     .feed-entry:last-child { border-bottom: none; }
@@ -552,6 +558,14 @@
     .feed-entry .st.running { color: var(--amber); }
     .feed-entry .st.ok { color: var(--ok); }
     .feed-entry .st.err { color: var(--err); }
+    /* Law rejections wear vermilion, not error red: the file speaking, not the
+       machine failing. Detection keys on the wall messages ("no-go zone" in
+       guards.ts, "Scope lock:" in write-guard.ts) — reword those and this
+       must follow. The inset rule sits inside the entry's own box, so the
+       timestamp column never shifts. */
+    .feed-entry .st.shu { color: var(--shu); }
+    .feed-entry.law { background: rgba(224, 86, 60, 0.05); box-shadow: inset 2px 0 0 var(--shu-dim); }
+    .feed-entry.law .cmd { color: var(--shu); }
     .feed-entry .st svg { display: block; }
     /* A determinate percentage deserves a shape, not just digits. Block
        characters keep it inside the panel's monospace idiom. */
@@ -567,6 +581,7 @@
       display: block; color: var(--err); font-size: 9px;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
+    .feed-entry.law .err-msg { color: var(--shu); opacity: 0.85; }
     .feed-entry .prog-msg {
       display: block; color: var(--amber-dim); font-size: 9px;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -649,7 +664,7 @@
     .approval-reason:focus { outline: none; border-color: var(--amber-dim); }
 
     /* ── File memory (precedents) ───────────────────────── */
-    .mem-entry { display: flex; align-items: baseline; gap: var(--sp-8); padding: 4px 0; border-bottom: 1px solid var(--line-soft); font-size: 10px; }
+    .mem-entry { display: flex; align-items: baseline; gap: var(--sp-8); padding: 4px 0; border-bottom: 0.5px solid var(--line-soft); font-size: 10px; }
     .mem-entry:last-child { border-bottom: none; }
     .mem-date { color: var(--faint); flex-shrink: 0; }
     .mem-kind { flex-shrink: 0; color: var(--amber-dim); border: 1px solid var(--line); padding: 0 4px; font-size: 9px; }
@@ -663,7 +678,7 @@
     /* ── Kits: radio list (choose one, or none) + detail for the one in use ── */
     .rs-entry {
       display: flex; align-items: center; gap: var(--sp-8);
-      padding: 5px 0; border-bottom: 1px solid var(--line-soft); font-size: 10px;
+      padding: 5px 0; border-bottom: 0.5px solid var(--line-soft); font-size: 10px;
       cursor: pointer;
     }
     .rs-entry:hover .rs-name { color: var(--amber); }
@@ -686,7 +701,7 @@
     .rs-entry.in-use:not(.none-row) { border-bottom: none; }
     .rs-expand {
       padding: 0 0 var(--sp-6) 16px;
-      border-bottom: 1px solid var(--line-soft);
+      border-bottom: 0.5px solid var(--line-soft);
     }
     .rs-expand .setting-row { padding: var(--sp-2) 0; }
     .rs-acts { display: flex; gap: var(--sp-12); padding: var(--sp-4) 0; font-size: 10px; }
@@ -726,7 +741,7 @@
       font-family: var(--mono); font-size: 10px; padding: 4px 10px; cursor: pointer;
     }
     .guards-btn:hover { border-color: var(--amber-dim); color: var(--text); }
-    .guard-row { display: flex; align-items: center; gap: var(--sp-8); padding: 5px 0; border-bottom: 1px solid var(--line-soft); font-size: 10px; color: var(--muted); }
+    .guard-row { display: flex; align-items: center; gap: var(--sp-8); padding: 5px 0; border-bottom: 0.5px solid var(--line-soft); font-size: 10px; color: var(--muted); }
     .guard-row:last-child { border-bottom: none; }
     .guard-row input { accent-color: var(--amber); }
     .guard-row .gname { flex: 1; min-width: 0; overflow-wrap: anywhere; }
@@ -1530,8 +1545,10 @@
     var guardPages = [];
 
     function renderGuards() {
-      document.getElementById('guardsCount').textContent =
-        String(guardPages.filter(function (p) { return p.guarded; }).length);
+      var guardedN = guardPages.filter(function (p) { return p.guarded; }).length;
+      var gc = document.getElementById('guardsCount');
+      gc.textContent = String(guardedN);
+      gc.className = guardedN > 0 ? 'shu' : '';
       var list = document.getElementById('guardsList');
       if (!list) return;
       list.textContent = '';
@@ -2389,7 +2406,9 @@
       var ICON_OK = '<svg viewBox="0 0 256 256" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z"/></svg>';
       var ICON_ERR = '<svg viewBox="0 0 256 256" width="10" height="10" fill="currentColor" aria-hidden="true"><path d="M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z"/></svg>';
       var st = e.el.querySelector('.st');
-      st.className = 'st ' + (ok ? 'ok' : 'err');
+      var isLaw = !ok && errMsg && (String(errMsg).indexOf('no-go zone') !== -1 || String(errMsg).indexOf('Scope lock:') !== -1);
+      if (isLaw) e.el.classList.add('law');
+      st.className = 'st ' + (ok ? 'ok' : (isLaw ? 'shu' : 'err'));
       st.innerHTML = ok ? ICON_OK : ICON_ERR;
       var pm = e.el.querySelector('.prog-msg');
       if (pm) pm.parentNode.removeChild(pm);
