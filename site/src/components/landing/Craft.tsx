@@ -15,9 +15,9 @@ export function Craft() {
           <h2 className="mt-3 font-heading text-[1.9rem] font-semibold leading-tight tracking-tight md:text-[2.5rem]">{copy.title}</h2>
           <p className="t-prose mt-4 max-w-2xl text-[15px] text-muted-foreground">{copy.body}</p>
         </div>
-        <div className="mt-12 grid gap-[0.5px] overflow-hidden border-[0.5px] border-border bg-border lg:grid-cols-2">
+        <div className="mt-12 grid grid-cols-1 gap-[0.5px] overflow-hidden border-[0.5px] border-border bg-border lg:grid-cols-2">
           {copy.items.map((item, i) => (
-            <article key={item.title} className="flex flex-col bg-background p-7 md:p-9">
+            <article key={item.title} className="flex min-w-0 flex-col bg-background p-7 md:p-9">
               <p className="font-mono text-xs text-primary">0{i + 1} · {item.kicker}</p>
               <h3 className="mt-3 font-heading text-xl font-semibold tracking-tight md:text-[1.35rem]">{item.title}</h3>
               <p className="t-prose mt-3 text-sm text-muted-foreground">{codeText(item.body)}</p>
