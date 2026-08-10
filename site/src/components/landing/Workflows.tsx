@@ -15,7 +15,7 @@ export function Workflows() {
         <figure className="ticks mt-12 border border-border bg-card p-1.5">
           <video
             className="block h-auto w-full"
-            style={{ aspectRatio: '2632 / 1514' }}
+            style={{ aspectRatio: '2632 / 1434' }}
             controls
             preload="metadata"
             playsInline
