@@ -84,7 +84,12 @@
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: var(--sp-16);
     }
+    .logo { display: flex; align-items: flex-end; gap: 8px; }
     .logo svg { display: block; }
+    /* Baseline-matched to the wordmark: the svg keeps a 0.7px inset under its
+       glyphs (35/36 viewBox), the text needs a nudge down to sit on the same
+       line — same alignment ritual as the site nav. */
+    .hdr-ver { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; color: var(--faint); line-height: 1; margin-bottom: -1px; }
 
     .seg {
       display: inline-flex;
@@ -822,6 +827,7 @@
         <path d="M45.8515 35.5C43.157 35.5 40.8237 34.9722 38.8515 33.9167C36.8793 32.8333 35.3515 31.3194 34.2681 29.375C33.2126 27.4028 32.6848 25.0833 32.6848 22.4167C32.6848 19.75 33.2126 17.4583 34.2681 15.5417C35.3237 13.5972 36.8237 12.1111 38.7681 11.0833C40.7126 10.0278 42.9904 9.5 45.6015 9.5C48.157 9.5 50.3515 10 52.1848 11C54.0181 11.9722 55.4348 13.3889 56.4348 15.25C57.4348 17.0833 57.9348 19.2639 57.9348 21.7917V23.9583H38.6848C38.907 26.0694 39.6293 27.6944 40.8515 28.8333C42.1015 29.9444 43.7543 30.5 45.8098 30.5C47.3376 30.5 48.5737 30.2222 49.5181 29.6667C50.4904 29.0833 51.1709 28.2222 51.5598 27.0833H57.8098C57.2265 29.7222 55.8793 31.7917 53.7681 33.2917C51.6848 34.7639 49.0459 35.5 45.8515 35.5ZM38.8098 19.75H51.9765C51.7265 18.0278 51.0598 16.7222 49.9765 15.8333C48.8931 14.9167 47.4348 14.4583 45.6015 14.4583C43.7959 14.4583 42.3098 14.9167 41.1431 15.8333C39.9765 16.75 39.1987 18.0556 38.8098 19.75Z" fill="#E8E2D0"/>
         <path d="M0 35V1.25H17.0833C20.6389 1.25 23.4167 2.06944 25.4167 3.70833C27.4444 5.31945 28.4583 7.56945 28.4583 10.4583C28.4583 12.1806 28.0556 13.6667 27.25 14.9167C26.4722 16.1667 25.3333 17.0972 23.8333 17.7083V17.875C25.3056 17.875 26.4444 18.2778 27.25 19.0833C28.0556 19.8611 28.4583 21.0139 28.4583 22.5417V35H22.125V21.8333H6.375V35H0ZM6.375 16.4167H16.625C18.4028 16.4167 19.7778 16 20.75 15.1667C21.7222 14.3056 22.2083 13.1111 22.2083 11.5833C22.2083 10.0278 21.7222 8.83333 20.75 8C19.7778 7.13889 18.4028 6.70833 16.625 6.70833H6.375V16.4167Z" fill="#E8E2D0"/>
       </svg>
+      <span class="hdr-ver" id="hdrVer"></span>
     </div>
     <div class="seg" role="group" aria-label="Language">
       <button id="langEn" onclick="setLang('en')">EN</button>
@@ -1099,7 +1105,7 @@
   </div>
 
   <!-- Footer -->
-  <div class="footer"><span class="dockpair" aria-hidden="true"><i></i><i></i></span> Relai v0.7.7 <span class="dockpair flip" aria-hidden="true"><i></i><i></i></span></div>
+  <div class="footer"><span class="dockpair" aria-hidden="true"><i></i><i></i></span> Relai v0.7.8 <span class="dockpair flip" aria-hidden="true"><i></i><i></i></span></div>
 
   <script>
     // ---------- i18n ----------
@@ -1431,6 +1437,11 @@
       return 'en';
     }
     var locale = detectLocale();
+
+    // The version prints once, in the footer; the header badge copies it so a
+    // release bump stays a single edit in this file (the nine-place rule holds).
+    document.getElementById('hdrVer').textContent =
+      (document.querySelector('.footer').textContent.match(/v\d[\d.]+/) || [''])[0];
 
     function t(key) { return (I18N[locale] && I18N[locale][key]) || I18N.en[key] || key; }
     function applyI18n() {
