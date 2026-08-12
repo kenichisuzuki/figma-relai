@@ -38,16 +38,47 @@ export function startEmbeddedRelay(
 
       wss.on("connection", (ws) => {
         core.handleOpen(ws);
+        (ws as WebSocket & { isAlive?: boolean }).isAlive = true;
+        ws.on("pong", () => {
+          (ws as WebSocket & { isAlive?: boolean }).isAlive = true;
+        });
         ws.on("message", (data) => core.handleMessage(ws, data.toString()));
-        ws.on("close", () => core.handleClose(ws));
+        ws.on("close", (code, reason) => {
+          logger.debug(`[relay] socket closed code=${code} reason=${reason?.toString?.() ?? ""}`);
+          core.handleClose(ws);
+        });
         ws.on("error", () => {});
       });
+
+      // Protocol-level keepalive: the browser answers pings in its network
+      // stack, so even a plugin whose JS thread is pinned by a long findAll
+      // stays alive — while a genuinely dead socket (tab gone, iframe killed)
+      // gets reaped instead of lingering half-open. Generous cadence: a peer
+      // is only terminated after missing two full intervals.
+      const PING_MS = 30000;
+      const pinger = setInterval(() => {
+        for (const ws of wss.clients) {
+          const w = ws as WebSocket & { isAlive?: boolean };
+          if (w.isAlive === false) {
+            logger.debug("[relay] terminating unresponsive socket (missed ping)");
+            w.terminate();
+            continue;
+          }
+          w.isAlive = false;
+          try {
+            w.ping();
+          } catch {
+            // terminate on next sweep
+          }
+        }
+      }, PING_MS);
 
       core.startStaleCleanup();
       logger.info(`Hosting embedded relay on 127.0.0.1:${port}`);
 
       resolve({
         close() {
+          clearInterval(pinger);
           core.stop();
           wss.close();
           httpServer.close();

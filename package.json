@@ -1,6 +1,6 @@
 {
   "name": "figma-relai",
-  "version": "0.7.8",
+  "version": "0.7.9",
   "private": true,
   "type": "module",
   "workspaces": [

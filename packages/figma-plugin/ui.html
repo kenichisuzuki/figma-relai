@@ -1105,7 +1105,7 @@
   </div>
 
   <!-- Footer -->
-  <div class="footer"><span class="dockpair" aria-hidden="true"><i></i><i></i></span> Relai v0.7.8 <span class="dockpair flip" aria-hidden="true"><i></i><i></i></span></div>
+  <div class="footer"><span class="dockpair" aria-hidden="true"><i></i><i></i></span> Relai v0.7.9 <span class="dockpair flip" aria-hidden="true"><i></i><i></i></span></div>
 
   <script>
     // ---------- i18n ----------
@@ -1510,6 +1510,9 @@
     var ws = null;
     var roomName = '';
     var fileName = '';
+    // 房间名按文件存:全局一个 room 会让多文件互相顶替(2026-08-12 三连事故)
+    var fileId = '';
+    var roomsByFile = {};
     var reconnectTimer = null;
     // True from the moment a connection is wanted (auto-connect or the
     // Connect button) until the designer explicitly disconnects. Drives the
@@ -2158,10 +2161,18 @@
       setTimeout(function () { line.classList.remove('copied'); }, 1200);
     }
 
+    function saveRoom() {
+      if (fileId) {
+        roomsByFile[fileId] = roomName;
+        saveSettings({ roomsByFile: roomsByFile });
+      } else {
+        saveSettings({ room: roomName });
+      }
+    }
     function refreshRoom() {
       roomName = randomRoom();
       document.getElementById('room').value = roomName;
-      saveSettings({ room: roomName });
+      saveRoom();
     }
 
     // ---------- Copy command ----------
@@ -2673,9 +2684,13 @@
         if (LOCALES.indexOf(s.locale) !== -1) locale = s.locale;
         if (CLIENTS[s.client]) client = s.client;
         applyI18n();
-        roomName = s.room || randomRoom();
+        fileId = msg.fileId || '';
+        roomsByFile = s.roomsByFile || {};
+        // 本文件专属房间;老版全局 room 不迁移(迁移会把同一个名字发给每个文件,
+        // 正是要治的病)。首开的文件拿全新随机房,自动配对会自己接上。
+        roomName = (fileId && roomsByFile[fileId]) || randomRoom();
         document.getElementById('room').value = roomName;
-        if (!s.room) saveSettings({ room: roomName });
+        if (!fileId || !roomsByFile[fileId]) saveRoom();
         document.getElementById('allowExec').checked = s.allowCodeExec !== false;
         document.getElementById('autoConnect').checked = s.autoConnect !== false;
         // A restored lock must show as locked, or the switch lies about the file's state

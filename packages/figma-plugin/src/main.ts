@@ -68,7 +68,8 @@ figma.showUI(__html__, { width: 380, height: 850, themeColors: true });
 
 // Designer-facing settings persisted across plugin restarts
 interface RelaiSettings {
-  room?: string;
+  room?: string; // legacy (pre-0.7.9): one room for every file — the collision bug
+  roomsByFile?: Record<string, string>;
   autoConnect?: boolean;
   allowCodeExec?: boolean;
   locale?: "en" | "ja" | "zh";
@@ -101,6 +102,22 @@ async function loadSettings(): Promise<RelaiSettings> {
   }
 }
 
+// Room identity is per FILE, not per install. clientStorage is shared by every
+// file this plugin opens on the machine, so a single saved room name makes two
+// open files fight over one address — and an agent's writes can land in the
+// wrong document (three live incidents on 2026-08-12/13). figma.fileKey is
+// undefined for most private plugins, so the file carries a private random
+// seed; mixing in root.name splits branches and copies, which share pluginData.
+function getFileId(): string {
+  if (figma.fileKey) return figma.fileKey;
+  let seed = figma.root.getPluginData("roomSeed");
+  if (!seed) {
+    seed = Math.random().toString(36).slice(2, 10);
+    figma.root.setPluginData("roomSeed", seed);
+  }
+  return seed + ":" + figma.root.name;
+}
+
 // Send persisted settings to the UI so it can restore the room + auto-connect
 loadSettings().then(async (settings) => {
   currentSettings = settings;
@@ -123,6 +140,7 @@ loadSettings().then(async (settings) => {
     type: "init-settings",
     settings,
     fileName: figma.root.name,
+    fileId: getFileId(),
     hasConventions: figma.root.getSharedPluginData("relai", "conventions").length > 0,
     conventionsContent: figma.root.getSharedPluginData("relai", "conventions"),
     memory: readMemory(),

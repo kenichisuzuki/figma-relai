@@ -13,7 +13,7 @@ const ACTIONS: Record<string, [string, string[]]> = {
   unlink: ["unlink_ruleset", []],
   status: ["ruleset_status", []],
   restore: ["restore_from_ruleset", ["force"]],
-  push: ["push_to_ruleset", []],
+  push: ["push_to_ruleset", ["force"]],
   promote: ["promote_precedent", ["id"]],
   export: ["export_ruleset", ["name"]],
   import: ["import_ruleset", ["markdown", "name"]],
@@ -38,7 +38,7 @@ export function register(server: McpServer, sendCommand: SendCommandFn): void {
         .boolean()
         .optional()
         .describe(
-          "restore/link: replace the file's law even when it is NEWER than the kit's. Without this, a restore that would walk backwards is refused — say which side you mean to keep."
+          "restore/link: replace the file's law even when it is NEWER than the kit's; push: overwrite a kit that has moved since this file last synced it. Without this, an overwrite that would discard someone else's version is refused — say which side you mean to keep."
         ),
       id: z.string().optional().describe("promote: precedent id (list_precedents shows them)"),
       markdown: z.string().optional().describe("import: a ruleset package exported earlier"),

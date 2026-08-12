@@ -117,7 +117,7 @@ export function register(server: McpServer, sendCommand: SendCommandFn): void {
           coverage = audit.totalProperties > 0 ? audit.boundCount / audit.totalProperties : 1;
           coverageDetail = ` (${audit.boundCount}/${audit.totalProperties} paint props across ${audit.scanned} nodes${audit.hiddenCount ? `, ${audit.hiddenCount} hidden unbound` : ""})`;
         } catch {
-          coverage = calculateTokenCoverage(nodeInfo, bv);
+          coverage = calculateTokenCoverage(nodeInfo, bv) ?? 1;
           coverageDetail = " (shallow — old plugin build)";
         }
         results.push({

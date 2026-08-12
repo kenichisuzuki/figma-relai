@@ -34,6 +34,10 @@ export interface Ruleset {
   provenance: string;
   createdAt: string;
   updatedAt: string;
+  // Forensics: root.name of the file whose panel last wrote this set. When a
+  // kit turns up overwritten, this names the writer instead of leaving a
+  // mystery (the 2026-08-12 contamination had none).
+  updatedBy?: string;
 }
 
 interface RulesetLink {
@@ -219,13 +223,33 @@ export async function restoreFromRuleset(force = false): Promise<{
 }
 
 /** Push: file → ancestor. The file's current conventions become the set's. */
-export async function pushToRuleset(): Promise<{ pushed: string; conventionsChars: number }> {
+export async function pushToRuleset(
+  force = false
+): Promise<{ pushed: string; conventionsChars: number }> {
   const link = readLink();
   if (!link) throw new Error("This file is not linked to a ruleset. Use link_ruleset first.");
   const { sets, set, index } = await requireSet(link.name);
   const file = fileConventions();
   if (!file) throw new Error("This file has no conventions to push.");
-  sets[index] = { ...set, conventions: file, updatedAt: nowIso() };
+  // force-with-lease: the rulesetLink travels with file COPIES and branches,
+  // so a stray copy can aim a push at a kit it has no business rewriting
+  // (measured 2026-08-12: "define gin" overwritten with another file's 2,838
+  // chars). If the kit has moved since THIS file last synced it, refuse and
+  // make the caller look before overwriting.
+  if (
+    !force &&
+    link.lastSyncHash &&
+    set.conventions.length > 0 &&
+    contentHash(set.conventions) !== link.lastSyncHash
+  ) {
+    throw new Error(
+      `Ruleset "${set.name}" has changed since this file last synced it ` +
+        `(kit ${set.conventions.length} chars, updated ${set.updatedAt}` +
+        `${set.updatedBy ? ` by "${set.updatedBy}"` : ""}). ` +
+        `Review with list/export first; pass force:true only if this file's law should replace it.`
+    );
+  }
+  sets[index] = { ...set, conventions: file, updatedAt: nowIso(), updatedBy: figma.root.name };
   await writeRulesets(sets);
   writeLink({ name: set.name, lastSyncHash: contentHash(file) });
   postRulesetState();
@@ -339,6 +363,7 @@ registerHandler("list_rulesets", async () => {
       autoRestore: s.autoRestore,
       provenance: s.provenance,
       updatedAt: s.updatedAt,
+      updatedBy: s.updatedBy ?? null,
       linkedHere: link?.name === s.name,
     })),
     linked: link?.name ?? null,
@@ -380,6 +405,7 @@ registerHandler("save_ruleset", async (params) => {
       ...(typeof params.autoRestore === "boolean" ? { autoRestore: params.autoRestore } : {}),
       ...(typeof params.provenance === "string" ? { provenance: params.provenance } : {}),
       updatedAt: nowIso(),
+      updatedBy: figma.root.name,
     };
   }
   await writeRulesets(sets);
@@ -418,7 +444,7 @@ registerHandler("ruleset_status", async () => rulesetStatus());
 
 registerHandler("restore_from_ruleset", async (params) => restoreFromRuleset(params.force === true));
 
-registerHandler("push_to_ruleset", async () => pushToRuleset());
+registerHandler("push_to_ruleset", async (params) => pushToRuleset(params.force === true));
 
 registerHandler("promote_precedent", async (params) => {
   const id = typeof params.id === "string" ? params.id : "";

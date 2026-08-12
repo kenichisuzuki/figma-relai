@@ -301,6 +301,21 @@ export const PITFALLS: Pitfall[] = [
     doc: "**`clone()` on a variant downgrades a SLOT child to a plain FRAME and drops its `slotContentId` reference** — the copy looks right and quietly loses the slot. Re-assigning `componentPropertyReferences = { slotContentId: '<Slot#id>' }` to the cloned frame restores the behaviour: the master still reports `FRAME`, but instances of it materialise a real `SLOT` child, expose the SLOT property, and accept appended content. There is no `figma.createSlot()`, so this reassignment is the only repair from code; duplicating the variant in the Figma UI keeps the SLOT type intact. Relai's post-run lint now names the slotless variants, but only for component sets it can reach — return the ids of what you cloned.",
   },
   {
+    pattern: "setBoundVariable with a variable id",
+    hint: "Pass the Variable OBJECT (from getVariableByIdAsync / getLocalVariablesAsync), not the \"VariableID:…\" string.",
+    doc: "**`setBoundVariable` takes a Variable object, not an id string** — the string form throws `Cannot call setBoundVariable with a variable id. Please pass a variable object`. Fetch the variable first (`getVariableByIdAsync`, or a map built from `getLocalVariablesAsync`) and pass the object itself.",
+  },
+  {
+    pattern: null,
+    hint: "",
+    doc: "**Rebinding width/height on a node INSIDE an instance is a silent no-op** — `setBoundVariable` returns without error and `boundVariables` still shows the old id afterwards. Only `setBoundVariable(field, null)` (unbind) persists there. Stuck overrides — bindings an instance kept from a main that has since been cleaned — can therefore never be re-pointed from code, only cleared; and if the main is already clean, clearing IS the correct repair (the node falls back to the main's shape, pixels stay put). Measured on 301 soft-deleted `Size/height/12` bindings (2026-08-12): rebind reported success ×301 and changed nothing; unbind cleared every one. Always read the field back after writing — success without verification is how this one hides.",
+  },
+  {
+    pattern: "Component set (for node )?has existing errors",
+    hint: "Some instance's backing component set carries variant errors (often a soft-deleted scratch set). Wrap componentProperties reads per instance and skip the bad ones; locate the culprit by probing mainComponent.parent per unique set.",
+    doc: "**One broken component set crashes a whole-file property scan**: `instance.componentProperties` (and a set's `componentPropertyDefinitions`) throw `Component set has existing errors` when the backing set has variant conflicts — and the set may not even be on any page (a soft-deleted draft still referenced by one forgotten instance). A file-wide audit that reads properties uncaught dies on the first such instance. Guard each read with try/catch, report skips, and find the culprit cheaply: collect unique `mainComponent.parent` sets across instances and probe `componentPropertyDefinitions` on each (a few hundred sets) instead of touching every instance.",
+  },
+  {
     pattern: null,
     hint: "",
     doc: "**Dot-prefixed components are never published**, so their keys 404 on every REST endpoint. Figma hides `.`-prefixed assets from the publish dialog; they exist only nested inside published parents. When resolving a key → file via `/v1/components/{key}`, skip names starting with `.` — and note a component SET's key resolves only at `/v1/component_sets/{key}`, never at `/v1/components/{key}` (and vice versa). Relatedly, `/v1/files/{key}/components` returns the individual VARIANTS (`size=md, state=default`); the components a designer names live in `/component_sets`.",

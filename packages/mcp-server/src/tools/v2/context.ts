@@ -127,7 +127,7 @@ export function register(server: McpServer, sendCommand: SendCommandFn): void {
           if (!summary) return null;
 
           const boundVars = bindings[i]?.boundVariables || null;
-          summary.tokenCoverage = calculateTokenCoverage(raw, boundVars);
+          summary.tokenCoverage = calculateTokenCoverage(raw, boundVars) ?? undefined;
           if (boundVars) {
             summary.fillToken = extractTokenName(boundVars, "fills");
             summary.strokeToken = extractTokenName(boundVars, "strokes");
@@ -140,12 +140,15 @@ export function register(server: McpServer, sendCommand: SendCommandFn): void {
           pageInfo: selection.currentPage || { id: "", name: "" },
         };
 
-        const avgCoverage = nodes.length > 0
-          ? Math.round(nodes.reduce((sum: number, n: any) => sum + (n.tokenCoverage || 0), 0) / nodes.length * 100)
-          : 0;
+        // null coverage = container chrome (COMPONENT_SET/SECTION) — no metric,
+        // not a zero. Averaging it in accused fully-tokenized sets of 0%.
+        const covered = nodes.filter((n: any) => n.tokenCoverage != null);
+        const avgCoverage = covered.length > 0
+          ? Math.round(covered.reduce((sum: number, n: any) => sum + n.tokenCoverage, 0) / covered.length * 100)
+          : null;
 
         const warnings = [];
-        if (avgCoverage < 50) {
+        if (avgCoverage != null && avgCoverage < 50) {
           warnings.push({
             category: "tokens" as const,
             message: `Token coverage is ${avgCoverage}% — many properties are not bound to design variables`,
@@ -153,7 +156,7 @@ export function register(server: McpServer, sendCommand: SendCommandFn): void {
         }
 
         return standardResult({
-          summary: `Selected ${nodes.length} node(s): ${nodes.map((n: any) => `'${n.name}' (${n.type})`).join(", ")}. Token coverage: ${avgCoverage}%`,
+          summary: `Selected ${nodes.length} node(s): ${nodes.map((n: any) => `'${n.name}' (${n.type})`).join(", ")}${avgCoverage != null ? `. Token coverage: ${avgCoverage}%` : ""}`,
           data,
           warnings,
           recommended_next: [
@@ -206,7 +209,7 @@ export function register(server: McpServer, sendCommand: SendCommandFn): void {
         }
 
         const bv = boundVars?.boundVariables || null;
-        node.tokenCoverage = calculateTokenCoverage(nodeInfo, bv);
+        node.tokenCoverage = calculateTokenCoverage(nodeInfo, bv) ?? undefined;
         if (bv) {
           node.fillToken = extractTokenName(bv, "fills");
           node.strokeToken = extractTokenName(bv, "strokes");
@@ -224,7 +227,7 @@ export function register(server: McpServer, sendCommand: SendCommandFn): void {
         };
 
         return standardResult({
-          summary: `'${node.name}' (${node.type}, ${node.size.width}×${node.size.height}). Token coverage: ${Math.round((node.tokenCoverage || 0) * 100)}%`,
+          summary: `'${node.name}' (${node.type}, ${node.size.width}×${node.size.height})${node.tokenCoverage != null ? `. Token coverage: ${Math.round(node.tokenCoverage * 100)}%` : ""}`,
           data,
           recommended_next: [
             { tool: "update_node", reason: "Modify this node's properties", args: { nodeId } },

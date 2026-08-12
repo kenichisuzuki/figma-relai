@@ -147,7 +147,14 @@ function extractComponentStatus(node: any): string | null {
 export function calculateTokenCoverage(
   node: any,
   boundVariables: Record<string, unknown> | null
-): number {
+): number | null {
+  // Container chrome is not design surface: a COMPONENT_SET's dashed frame
+  // carries its own cornerRadius (Figma default), so a fully tokenized set
+  // reported "0% covered" (RadioCard, 2026-08-13). No metric beats a wrong one
+  // — callers skip null.
+  if (node.type === "COMPONENT_SET" || node.type === "SECTION" || node.type === "PAGE") {
+    return null;
+  }
   let totalProps = 0;
   let boundProps = 0;
 

@@ -358,9 +358,12 @@ function collectPropertyBindingIds(page: PageNode): string[] {
   const definitions = page.findAllWithCriteria({ types: ["COMPONENT", "COMPONENT_SET"] });
   for (const def of definitions) {
     if (def.type === "COMPONENT" && def.parent?.type === "COMPONENT_SET") continue;
-    const defs = (def as ComponentNode).componentPropertyDefinitions as
-      | Record<string, { boundVariables?: Record<string, { id?: string }> }>
-      | undefined;
+    let defs: Record<string, { boundVariables?: Record<string, { id?: string }> }> | undefined;
+    try {
+      defs = (def as ComponentNode).componentPropertyDefinitions as typeof defs;
+    } catch {
+      continue; // set with existing errors — skip, never crash the walk
+    }
     if (!defs) continue;
     for (const entry of Object.values(defs)) {
       const bound = entry?.boundVariables;
@@ -388,6 +391,7 @@ registerHandler("audit_property_bindings", async (params) => {
   const ids: string[] = [];
   let index = 0;
   let scanned = 0;
+  let skipped = 0;
   let done = true;
   for (const page of pages) {
     const instances = page.findAllWithCriteria({ types: ["INSTANCE"] });
@@ -402,10 +406,19 @@ registerHandler("audit_property_bindings", async (params) => {
         break;
       }
       scanned++;
-      const props = inst.componentProperties as Record<
-        string,
-        { boundVariables?: Record<string, { id?: string }> }
-      >;
+      let props: Record<string, { boundVariables?: Record<string, { id?: string }> }>;
+      try {
+        // A backing set with variant errors makes this getter throw — and the
+        // set may be a soft-deleted draft that is on no page at all. One bad
+        // instance must not kill a whole-file audit (measured 2026-08-12).
+        props = inst.componentProperties as Record<
+          string,
+          { boundVariables?: Record<string, { id?: string }> }
+        >;
+      } catch {
+        skipped++;
+        continue;
+      }
       for (const key in props) {
         const bound = props[key]?.boundVariables;
         if (!bound) continue;
@@ -417,7 +430,7 @@ registerHandler("audit_property_bindings", async (params) => {
     }
     if (!done) break;
   }
-  return { ids: [...new Set(ids)], scanned, next: offset + scanned, done };
+  return { ids: [...new Set(ids)], scanned, skipped, next: offset + scanned, done };
 });
 
 const tokenGroup = (name: string) => name.split("/")[0];
