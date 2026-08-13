@@ -580,13 +580,25 @@ registerHandler("audit_dimension_stability", async (params) => {
 
   // A text box that cannot grow clips instead — the longest value is the one
   // nobody previews. NONE means both axes are fixed; HEIGHT wraps, so it is safe.
+  // Icon-font ligature glyphs are the systematic false positive: their fixed
+  // square box IS the design and a resolved ligature is always one glyph wide.
+  // Count them separately instead of drowning the real risks (87% of one
+  // measured corpus were glyphs).
+  const ICON_FONT =
+    /phosphor|font awesome|material (icons|symbols)|icomoon|feather|tabler|remix ?icon|bootstrap icons|glyphicons|ionicons|octicons/i;
   const clipRisk: Array<{ node: string; text: string; box: string; id: string }> = [];
+  let iconGlyphsExcluded = 0;
   const roots: SceneNode[] = sets.length ? sets : [node];
   for (const root of roots) {
     if (!("findAllWithCriteria" in root)) continue;
     for (const t of (root as FrameNode).findAllWithCriteria({ types: ["TEXT"] })) {
       if (t.textAutoResize !== "NONE") continue;
       if (!t.parent || !("layoutMode" in t.parent) || t.parent.layoutMode === "NONE") continue;
+      const font = t.fontName;
+      if (font !== figma.mixed && ICON_FONT.test(font.family)) {
+        iconGlyphsExcluded++;
+        continue;
+      }
       clipRisk.push({
         node: t.name,
         text: String(t.characters).slice(0, 24),
@@ -609,6 +621,7 @@ registerHandler("audit_dimension_stability", async (params) => {
     jitterCount: jitter.length,
     fixedText: uniqueClipRisk.slice(0, 10),
     fixedTextCount: uniqueClipRisk.length,
+    iconGlyphsExcluded,
   };
 });
 

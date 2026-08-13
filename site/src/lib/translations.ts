@@ -1,5 +1,5 @@
 
-export const VERSION = 'v0.7.9';
+export const VERSION = 'v0.7.10';
 
 export const translations = {
   en: {

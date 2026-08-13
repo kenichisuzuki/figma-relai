@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.10
+
+The audit learns what an icon is; the ledger learns three ways a component set lies.
+
+- **Fixed-text audits stop crying wolf about icon glyphs.** `audit_dimension_stability` flagged every icon-font ligature as a clip risk — a fixed square box around a resolved ligature is the design, not a bug, and in one measured design system 87% of 106 warnings were exactly that. Texts set in known icon fonts (Phosphor, Font Awesome, Material, and friends) are now counted separately as `iconGlyphsExcluded`; `fixedText`/`fixedTextCount` carry only the boxes that can actually clip.
+- **Three new pitfalls** in the ledger every session reads: freshly created frames count their strokes into hug sizing (`strokesIncludedInLayout` defaults true — a hairline divider makes a 40px row report 40.5); converting a frame to a Slot in the UI freezes its sizing at FIXED and strips the `characters` references of the text inside it; and `combineAsVariants` re-keys every component property and can drop a TEXT property's reference on the way — survival is luck, audit the wiring after every combine.
+
 ## 0.7.9
 
 - **Every file gets its own room.** The plugin saved one room name for the whole machine, so opening the panel in a second file made both instances claim the same address — whichever answered at a given moment won, an agent's probes landed in whichever file happened to hold the name, and a law-restore script came within one `--dry` of writing design-system conventions into a user-side file. Rooms are now stored per file: a private seed the file carries, split by branch name so a branch and its main stop colliding too. First open after this release mints each file a fresh room once; auto-pairing follows it.

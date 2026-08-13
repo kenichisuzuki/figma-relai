@@ -320,6 +320,21 @@ export const PITFALLS: Pitfall[] = [
     hint: "",
     doc: "**Dot-prefixed components are never published**, so their keys 404 on every REST endpoint. Figma hides `.`-prefixed assets from the publish dialog; they exist only nested inside published parents. When resolving a key → file via `/v1/components/{key}`, skip names starting with `.` — and note a component SET's key resolves only at `/v1/component_sets/{key}`, never at `/v1/components/{key}` (and vice versa). Relatedly, `/v1/files/{key}/components` returns the individual VARIANTS (`size=md, state=default`); the components a designer names live in `/component_sets`.",
   },
+  {
+    pattern: null,
+    hint: "",
+    doc: "**Freshly created frames and components count their strokes into hug sizing** — `strokesIncludedInLayout` defaults to `true`, so a hairline bottom divider makes an auto-layout row report 40.5 instead of 40, and an outlined container reports two extra pixels. The half-pixel survives into every instance and into any math you do on the height. Components that should keep integer dimensions need `strokesIncludedInLayout = false` set explicitly; existing hand-built components in a file often already have it off, which is why cloning them behaves differently from building from scratch.",
+  },
+  {
+    pattern: null,
+    hint: "",
+    doc: "**Converting a frame to a Slot in the Figma UI freezes its sizing at FIXED and strips the property references of everything inside it.** The converted node keeps the width/height it had at conversion time as a hard FIXED size (a later `layoutSizingHorizontal = \"HUG\"` is rejected; `\"FILL\"` is accepted), and a TEXT child that carried a `characters` reference (`label#…`) comes out with the reference gone while the component property itself survives on the set — the panel shows the control, typing into it does nothing. After any frame→Slot conversion: re-assert the slot's sizing explicitly and re-wire `componentPropertyReferences` on its former children. (`figma.createSlot` does not exist — conversion is UI-only, so this cleanup is always manual-plus-script.)",
+  },
+  {
+    pattern: null,
+    hint: "",
+    doc: "**`combineAsVariants` re-keys every component property and can drop a TEXT property's `characters` reference on the way.** The ids in property keys (`title#1033:0`) belong to the standalone components; combining mints new set-level keys (`title#7527:4`) — so any key strings you saved before combining are stale afterwards. Worse, the re-wiring is lossy: in one measured combine the `title` reference survived on all variants while the `description` reference vanished from all of them, with no error. After every combine, audit `componentPropertyReferences` across all variants against the set's `componentPropertyDefinitions` and re-wire the orphans (survival is luck, not a rule — this is the same disease as duplicated variants keeping no references, in a different coat).",
+  },
 ];
 
 // First matching pitfall's hint, or null. Doc-only entries never match.
