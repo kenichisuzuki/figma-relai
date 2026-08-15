@@ -73,7 +73,7 @@ None of this is setup you grind through — it accumulates. On day one the file 
 
 You need [Figma Desktop](https://www.figma.com/downloads/), [Node.js](https://nodejs.org/) 18+, and an MCP client.
 
-**1. Install the plugin.** Download `relai-plugin.zip` from [the latest release](https://github.com/syoooo/figma-relai/releases/latest), unzip it, then open **Plugins → Development → Import plugin from manifest…** in the desktop app and pick `manifest.json`. Open it in the file you want to edit and keep the panel open — writes go through it. It connects on its own and remembers its room across restarts; when a release ships a new plugin, re-import the new zip.
+**1. Install the plugin.** Download `relai-plugin-<version>.zip` from [the latest release](https://github.com/syoooo/figma-relai/releases/latest), unzip it, then open **Plugins → Development → Import plugin from manifest…** in the desktop app and pick `manifest.json`. Open it in the file you want to edit and keep the panel open — writes go through it. It connects on its own and remembers its room across restarts; when a release ships a new plugin, re-import the new zip.
 
 **2. Register the server** with your AI client:
 

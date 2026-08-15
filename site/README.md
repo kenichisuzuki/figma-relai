@@ -1,6 +1,6 @@
 # Relai site
 
-Landing page for figma-relai — Vite + React + Tailwind, three languages (EN/JA/ZH), no runtime dependencies beyond React and lucide icons.
+Landing page for figma-relai — Vite + React + Tailwind, English only, no runtime dependencies beyond React and lucide icons.
 
 ```
 npm install
