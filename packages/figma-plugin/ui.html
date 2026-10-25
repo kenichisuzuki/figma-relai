@@ -120,6 +120,8 @@
       cursor: nwse-resize; touch-action: none;
     }
     .resize-handle:hover { color: var(--amber); }
+    /* Flush with the viewport corner: an outside ring would lose two sides */
+    .resize-handle:focus-visible { outline-offset: -3px; }
     .logo { display: flex; align-items: flex-end; gap: 8px; }
     .logo svg { display: block; }
     /* Baseline-matched to the wordmark: the svg keeps a 0.7px inset under its
