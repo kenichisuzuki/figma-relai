@@ -2604,6 +2604,11 @@
         // ring, on a box that is about to be zero-width.
         if (document.activeElement === b) b.blur();
         b.setAttribute('aria-hidden', 'true');
+        // The compact Stop hides itself the same way; hand focus to its
+        // neighbour so a keyboard user is not dropped back to the top.
+        if (document.activeElement === document.getElementById('compactStop')) {
+          document.getElementById('minimizeBtn').focus();
+        }
       }
     }
 
